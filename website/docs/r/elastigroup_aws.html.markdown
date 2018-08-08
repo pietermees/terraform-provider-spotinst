@@ -135,6 +135,7 @@ Note: Must be a sublist of `availability_zones` and `orientation` value must not
 * `key_name` - (Optional) The key name that should be used for the instance.
 * `enable_monitoring` - (Optional) Indicates whether monitoring is enabled for the instance.
 * `user_data` - (Optional) The user data to provide when launching the instance.
+* `shutdown_script` - (Optional) The Base64-encoded shutdown script that executet prior to instnace termination, for more information please see: [Shutdown Script](https://help.spotinst.com/hc/en-us/articles/115003069869)
 * `ebs_optimized` - (Optional) Enable high bandwidth connectivity between instances and AWS’s Elastic Block Store (EBS). For instance types that are EBS-optimized by default this parameter will be ignored.
 * `placement_tenancy` - (Optional) Enable dedicated tenancy. Note: There is a flat hourly fee for each region in which dedicated tenancy is used.
 
