@@ -2716,7 +2716,6 @@ func TestAccSpotinstElastigroup_IntegrationRoute53(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "integration_route53.0.domains.3911548355.record_sets.567353526.use_public_ip", "false"),
 					resource.TestCheckResourceAttr(resourceName, "integration_route53.0.domains.3911548355.record_sets.241835256.name", "test_update_three"),
 					resource.TestCheckResourceAttr(resourceName, "integration_route53.0.domains.3911548355.record_sets.241835256.use_public_ip", "false"),
-
 					resource.TestCheckResourceAttr(resourceName, "integration_route53.0.domains.712241011.hosted_zone_id", "new_domain_on_update"),
 					resource.TestCheckResourceAttr(resourceName, "integration_route53.0.domains.712241011.record_sets.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "integration_route53.0.domains.712241011.record_sets.2523873097.name", "new_set"),
@@ -2754,6 +2753,7 @@ integration_route53 = {
 		}
 	]
 }
+// -----------------------------------
 `
 const testIntegrationRoute53GroupConfig_Update = `
 // --- INTEGRATION: ROUTE53 ----------
@@ -2790,10 +2790,113 @@ integration_route53 = {
 		},
 	]
 }
+// -----------------------------------
 `
 const testIntegrationRoute53GroupConfig_EmptyFields = `
 // --- INTEGRATION: ROUTE53 ----------
 // ------------------------------------
+`
+
+// endregion
+
+// region Elastigroup: Elastic Beanstalk Integration
+func TestAccSpotinstElastigroup_IntegrationElasticBeanstalk(t *testing.T) {
+	groupName := "eg-integration-elastic-beanstalk"
+	resourceName := createElastigroupResourceName(groupName)
+
+	var group aws.Group
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		Providers:     TestAccProviders,
+		CheckDestroy:  testElastigroupDestroy,
+		IDRefreshName: resourceName,
+
+		Steps: []resource.TestStep{
+			{
+				ResourceName: resourceName,
+				Config: createElastigroupTerraform(&GroupConfigMetadata{
+					groupName:      groupName,
+					fieldsToAppend: testIntegrationElasticBeanstalkGroupConfig_Create,
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElastigroupExists(&group, resourceName),
+					testCheckElastigroupAttributes(&group, groupName),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.environment_id", "e-jbmzbdgq3z"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.automatic_roll", "false"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.strategy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.strategy.0.action", "REPLACE_SERVER"),
+				),
+			},
+			{
+				ResourceName: resourceName,
+				Config: createElastigroupTerraform(&GroupConfigMetadata{
+					groupName:      groupName,
+					fieldsToAppend: testIntegrationElasticBeanstalkGroupConfig_Update,
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElastigroupExists(&group, resourceName),
+					testCheckElastigroupAttributes(&group, groupName),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.environment_id", "e-jbmzbdgq3z"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.automatic_roll", "true"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.batch_size_percentage", "50"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.grace_period", "600"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.strategy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.strategy.0.action", "RESTART_SERVER"),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.0.deployment_preferences.0.strategy.0.should_drain_instances", "true"),
+				),
+			},
+			{
+				ResourceName: resourceName,
+				Config: createElastigroupTerraform(&GroupConfigMetadata{
+					groupName:      groupName,
+					fieldsToAppend: testIntegrationElasticBeanstalkGroupConfig_EmptyFields,
+				}),
+				Check: resource.ComposeTestCheckFunc(testCheckElastigroupExists(&group, resourceName),
+					testCheckElastigroupAttributes(&group, groupName),
+					resource.TestCheckResourceAttr(resourceName, "integration_elastic_beanstalk.#", "0")),
+			},
+		},
+	})
+}
+
+const testIntegrationElasticBeanstalkGroupConfig_Create = `
+// --- INTEGRATION: ELASTIC BEANSTALK ---
+integration_elastic_beanstalk = {
+	environment_id = "e-jbmzbdgq3z"
+	deployment_preferences = {
+		automatic_roll = false
+		strategy = {
+			action = "REPLACE_SERVER"
+		}
+	}
+}
+// --------------------------------------
+`
+
+const testIntegrationElasticBeanstalkGroupConfig_Update = `
+// --- INTEGRATION: ELASTIC BEANSTALK ---
+integration_elastic_beanstalk = {
+	environment_id = "e-jbmzbdgq3z"
+	deployment_preferences = {
+		automatic_roll = true
+		batch_size_percentage = 50
+		grace_period = 600
+		strategy = {
+			action = "RESTART_SERVER"
+			should_drain_instances = true
+		}
+	}
+}
+// --------------------------------------
+`
+
+const testIntegrationElasticBeanstalkGroupConfig_EmptyFields = `
+// --- INTEGRATION: ELASTIC BEANSTALK ---
+// --------------------------------------
 `
 
 // endregion

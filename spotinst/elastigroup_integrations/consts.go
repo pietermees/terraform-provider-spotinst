@@ -87,4 +87,16 @@ const (
 	UsePublicIP        commons.FieldName = "use_public_ip"
 	Name               commons.FieldName = "name"
 	// -----------------------------------
+
+	// - ELASTIC BEANSTALK ---------------
+	IntegrationElasticBeanstalk commons.FieldName = "integration_elastic_beanstalk"
+	EnvironmentID               commons.FieldName = "environment_id"
+	DeploymentPreferences       commons.FieldName = "deployment_preferences"
+	AutomaticRoll               commons.FieldName = "automatic_roll"
+	BatchSizePercentage         commons.FieldName = "batch_size_percentage"
+	GracePeriod                 commons.FieldName = "grace_period"
+	Strategy                    commons.FieldName = "strategy"
+	Action                      commons.FieldName = "action"
+	ShouldDrainInstances        commons.FieldName = "should_drain_instances"
+	// -----------------------------------
 )

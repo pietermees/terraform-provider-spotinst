@@ -592,6 +592,36 @@ Usage:
     }
 ```
 
+* `integration_elastic_beanstalk` - (Optional) Describes the [Elastic Beanstalk](https://aws.amazon.com/documentation/elastic-beanstalk/?id=docs_gateway) integration.
+
+    * `environment_id` - (Required) 
+    * `deployment_preferences` - (Required) Describes the deployment attributes when deploying an Elastic Beanstalk version.
+        * `automatic_roll` - (Required) Describes whether new instances will automatically replace old instances upon new Elastic Beanstalk version upload.
+        * `batch_size_percentage` - (Optional) Indicates in percentage the amount of instances should be replaced in each batch. If set to null it will be a system default.
+        * `grace_period` - (Optional, Default: 0) The amount of time, in seconds, after the instance has launched to starts and check its health. If set to null it will be a system default.
+        * `strategy` - (Required) Describes the actions to take on a version update.
+            * `action` - (Required) Indicates what action to take when the version updates.
+            * `should_drain_instances` - (Optional, Default: `false`) Indicates whether to use instance draining to instances that are de-registering or unhealthy.
+
+Usage:
+
+```hcl
+    integration_elastic_beanstalk = {
+    	environment_id = "e-example_id"
+    	
+    	deployment_preferences = {
+    		automatic_roll = true
+    		batch_size_percentage = 50
+    		grace_period = 600
+    		
+    		strategy = {
+    			action = "RESTART_SERVER"
+    			should_drain_instances = true
+    		}
+    	}
+    }
+```
+
 * `integration_kubernetes` - (Optional) Describes the [Kubernetes](https://kubernetes.io/) integration.
 
     * `integration_mode` - (Required) Valid values: `"saas"`, `"pod"`.
