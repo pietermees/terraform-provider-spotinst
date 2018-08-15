@@ -776,6 +776,42 @@ func resourceSpotinstAWSGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"deployment_preferences": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"automatic_roll": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"batch_size_percentage": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+									"grace_period": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+									"strategy": {
+										Type:     schema.TypeList,
+										Required: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"action": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"should_drain_instances": {
+													Type:     schema.TypeBool,
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2744,9 +2780,21 @@ func flattenAWSGroupRancherIntegration(integration *aws.RancherIntegration) []in
 }
 
 func flattenAWSGroupElasticBeanstalkIntegration(integration *aws.ElasticBeanstalkIntegration) []interface{} {
-	result := make(map[string]interface{})
-	result["environment_id"] = spotinst.StringValue(integration.EnvironmentID)
-	return []interface{}{result}
+	strategy := make(map[string]interface{})
+	strategy["action"] = spotinst.StringValue(integration.DeploymentPreferences.Strategy.Action)
+	strategy["should_drain_instances"] = spotinst.BoolValue(integration.DeploymentPreferences.Strategy.ShouldDrainInstances)
+
+	deploymentPreferences := make(map[string]interface{})
+	deploymentPreferences["automatic_roll"] = spotinst.BoolValue(integration.DeploymentPreferences.AutomaticRoll)
+	deploymentPreferences["batch_size_percentage"] = spotinst.IntValue(integration.DeploymentPreferences.BatchSizePercentage)
+	deploymentPreferences["grace_period"] = spotinst.IntValue(integration.DeploymentPreferences.GracePeriod)
+	deploymentPreferences["strategy"] = []interface{}{strategy}
+
+	beanstalk := make(map[string]interface{})
+	beanstalk["environment_id"] = spotinst.StringValue(integration.EnvironmentID)
+	beanstalk["deployment_preferences"] = []interface{}{deploymentPreferences}
+
+	return []interface{}{beanstalk}
 }
 
 func flattenAWSGroupKubernetesIntegration(integration *aws.KubernetesIntegration) []interface{} {
@@ -4022,11 +4070,71 @@ func expandAWSGroupElasticBeanstalkIntegration(data interface{}, nullify bool) (
 	i := &aws.ElasticBeanstalkIntegration{}
 
 	if v, ok := m["environment_id"].(string); ok && v != "" {
-		i.SetEnvironmentId(spotinst.String(v))
+		i.SetEnvironmentID(spotinst.String(v))
+	}
+
+	if v, ok := m["deployment_preferences"]; ok {
+		deploymentPrefs, err := expandAWSGroupElasticBeanstalkDeploymentPreferences(v, nullify)
+		if err != nil {
+			return nil, err
+		}
+		i.SetDeploymentPreferences(deploymentPrefs)
 	}
 
 	log.Printf("[DEBUG] Group Elastic Beanstalk integration configuration:  %s", stringutil.Stringify(i))
 	return i, nil
+}
+
+// expandAWSGroupElasticBeanstalkDeploymentPreferences expands the Deployment Preferences block.
+func expandAWSGroupElasticBeanstalkDeploymentPreferences(data interface{}, nullify bool) (*aws.DeploymentPreferences, error) {
+	list := data.([]interface{})
+	m := list[0].(map[string]interface{})
+	deploymentPrefs := &aws.DeploymentPreferences{}
+
+	if v, ok := m["automatic_roll"].(bool); !ok {
+		return nil, errors.New("invalid deployment preferences attributes: automatic_roll missing")
+	} else {
+		deploymentPrefs.SetAutomaticRoll(spotinst.Bool(v))
+	}
+
+	if v, ok := m["batch_size_percentage"].(int); ok && v > 0 {
+		deploymentPrefs.SetBatchSizePercentage(spotinst.Int(v))
+	} else if nullify {
+		deploymentPrefs.SetBatchSizePercentage(nil)
+	}
+
+	if v, ok := m["grace_period"].(int); ok && v >= 0 {
+		deploymentPrefs.SetGracePeriod(spotinst.Int(v))
+	}
+
+	if v, ok := m["strategy"]; ok {
+		strategy, err := expandAWSGroupElasticBeanstalkDeploymentPreferencesStrategy(v, nullify)
+
+		if err != nil {
+			return nil, err
+		}
+
+		deploymentPrefs.SetBeanstalkStrategy(strategy)
+	}
+	return deploymentPrefs, nil
+}
+
+// expandAWSGroupElasticBeanstalkDeploymentPreferencesStrategy expands the Strategy block
+func expandAWSGroupElasticBeanstalkDeploymentPreferencesStrategy(data interface{}, nullify bool) (*aws.BeanstalkStrategy, error) {
+	list := data.([]interface{})
+	m := list[0].(map[string]interface{})
+	strategy := &aws.BeanstalkStrategy{}
+
+	if v, ok := m["action"].(string); ok && v != "" {
+		strategy.SetAction(spotinst.String(v))
+	} else {
+		return nil, errors.New("invalid deployment beanstalk strategy attributes: action missing")
+	}
+
+	if v, ok := m["should_drain_instances"].(bool); ok {
+		strategy.SetShouldDrainInstances(spotinst.Bool(v))
+	}
+	return strategy, nil
 }
 
 // expandAWSGroupEC2ContainerServiceIntegration expands the EC2 Container Service Integration block.
