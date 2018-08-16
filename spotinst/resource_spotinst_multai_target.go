@@ -53,6 +53,7 @@ func resourceSpotinstMultaiTarget() *schema.Resource {
 			"tags": &schema.Schema{
 				Type:     schema.TypeMap,
 				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
