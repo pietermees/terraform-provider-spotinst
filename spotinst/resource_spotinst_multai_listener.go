@@ -26,6 +26,7 @@ func resourceSpotinstMultaiListener() *schema.Resource {
 			"balancer_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"protocol": &schema.Schema{
