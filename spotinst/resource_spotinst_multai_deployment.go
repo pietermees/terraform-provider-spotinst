@@ -28,6 +28,7 @@ func resourceSpotinstMultaiDeployment() *schema.Resource {
 			"tags": &schema.Schema{
 				Type:     schema.TypeMap,
 				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
