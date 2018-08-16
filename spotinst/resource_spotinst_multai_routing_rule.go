@@ -23,11 +23,13 @@ func resourceSpotinstMultaiRoutingRule() *schema.Resource {
 			"balancer_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"listener_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"route": &schema.Schema{
