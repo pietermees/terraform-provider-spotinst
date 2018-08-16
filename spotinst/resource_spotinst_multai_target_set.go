@@ -26,11 +26,13 @@ func resourceSpotinstMultaiTargetSet() *schema.Resource {
 			"balancer_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"deployment_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"name": &schema.Schema{
