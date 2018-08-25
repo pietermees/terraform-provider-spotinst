@@ -47,6 +47,7 @@ func resourceSpotinstMultaiRoutingRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  multai.StrategyRoundRobin.String(),
+				ForceNew: true,
 			},
 
 			"middleware_ids": &schema.Schema{
